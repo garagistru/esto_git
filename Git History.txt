@@ -1,0 +1,18 @@
+Git History on new_branch by all authors 
+
+изменения проверены
+ff85db1 (HEAD -> new_branch) by Mechanic <garagistru@gmail.com>, Fri Aug 23 2024 (3 minutes ago)
+1 file changed, 5 insertions(+), 2 deletions(-)
+
+hju
+56db918 (origin/new_branch) by Mechanic <garagistru@gmail.com>, Mon Aug 12 2024 (11 days ago)
+2 files changed, 12 insertions(+)
+
+ dose prueba
+8c52ed7 (origin/main, origin/about, origin/HEAD, myfix, main) by Mechanic <garagistru@gmail.com>, Thu Aug 08 2024 (2 weeks ago)
+3 files changed, 9 insertions(+), 2 deletions(-)
+
+mi commit test
+5986eb6 by Mechanic <garagistru@gmail.com>, Thu Aug 08 2024 (2 weeks ago)
+2 files changed, 19 insertions(+)
+
