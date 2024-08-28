@@ -26,7 +26,7 @@ long x = 0;            // нажатая цифра
 long n = 0;            // число на вводе
 long tiempoNumber = 0; // наборная из клавиатуры
 
-const int motoApilador = 9; // мотор укладчика
+const int stepMotoApilador = 9; // мотор укладчика
 
 const int dereccion = A1; // направление
 
@@ -98,8 +98,8 @@ void setup()
     pinMode(izcuierda, INPUT_PULLUP); // точка лево
     pinMode(derecha, INPUT_PULLUP);   // точка право
 
-    pinMode(motoApilador, OUTPUT); // уладчик
-    digitalWrite(motoApilador, 0); // состояние
+    pinMode(stepMotoApilador, OUTPUT); // уладчик
+    digitalWrite(stepMotoApilador, 0); // состояние
 
     pinMode(moto, OUTPUT); // мотор намотки реле
     digitalWrite(moto, 1); // выход надо проверить + или -
@@ -167,7 +167,7 @@ void Recalculo()
         // !!!!!!11 включился мотор укладчика надо заменить на функцию  Derecha
         for (int n = 0; n < 10; n++)
         {
-            digitalWrite(motoApilador, 1); // мотор
+            digitalWrite(stepMotoApilador, 1); // мотор
             delay(100);
             //  digitalWrite(motoApilador, 0);//стоп мотор
             delay(100);
@@ -203,7 +203,7 @@ void buttonTick() // сработка от прерывания
         digitalWrite(testDiod, 0); //  сигнал diod
 
         digitalWrite(moto, 1);         // отключаем реле мотора и останавливае укладчик
-        digitalWrite(motoApilador, 0); // стоп мотор
+        digitalWrite(stepMotoApilador, 0); // стоп мотор
         digitalWrite(dereccion, 0);    // сбрасываем направление
 
         Serial.println("Fin");
@@ -252,12 +252,12 @@ void Derecha()
         Serial.println("press puntoDerechaFlag");
 
         // включить motoApilador
-        digitalWrite(motoApilador, 0); // мотор              функция степ мотор
+        digitalWrite(stepMotoApilador, 0); // мотор              функция степ мотор
         delay(50);
 
         // включить направление
         digitalWrite(dereccion, 1);    // мотор
-        digitalWrite(motoApilador, 1); // мотор функция степ мотор
+        digitalWrite(stepMotoApilador, 1); // мотор функция степ мотор
     }
     if (!btnState1 && puntoDerechaFlag && millis() - btnTimer > 100)
     {
@@ -274,11 +274,11 @@ void Derecha()
         btnTimer = millis();
         Serial.println("press puntoIzcuierdaFlag");
 
-        digitalWrite(motoApilador, 0); // мотор                          функция степ мотор
+        digitalWrite(stepMotoApilador, 0); // мотор                          функция степ мотор
         delay(50);
         // включить направление
         digitalWrite(dereccion, 0);    // направление
-        digitalWrite(motoApilador, 1); // мотор /////////////////функция степ мотор
+        digitalWrite(stepMotoApilador, 1); // мотор /////////////////функция степ мотор
     }
     if (!btnState2 && puntoIzcuierdaFlag && millis() - btnTimer > 100)
     {
