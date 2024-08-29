@@ -26,31 +26,27 @@ long x = 0;            // нажатая цифра
 long n = 0;            // число на вводе
 long tiempoNumber = 0; // наборная из клавиатуры
 
-const int stepMotoApilador = 9; // мотор укладчика
 
-const int dereccion = A1; // направление
 
-// const int delKeypad2= xxxxxx;  //кнопка вызова клавиатуры
-bool flagKeypad2 = false; // флаг кнопки клавы
+const long stepMotoApilador = 9; // Steppin мотор укладчика
+
+const int dereccion = 7; // DirPin направление мотор укладчика
+
+const int EnablePin= 8; //EnablePin   остановка мотора
+#define frequency 2250            //Время между импульсами в мксек. 1000 мксек = 1 мсек = 0.001 сек. Частота следования импульсов 1/0.001 = 1 кГц, 
+//Не рекомендуется устанавливать время меньше 100 мсек, т.к. частота будет 10 кГц
+
+//Логический флаг для рабочего режима
+bool flagTrabajadora = 0;
+
 
 const int izcuierda = A2; // левая точка
 const int derecha = A3;   // правая точка
 
-int testDiod = 4; //////////////////////
-// клавиатура
-const byte ROWS = 4;
-const byte COLS = 3;
+int testDiod = 4; //////////////////////подключаем светодиод
 
-char keys[ROWS][COLS] = {
-    {'1', '2', '3'},
-    {'4', '5', '6'},
-    {'7', '8', '9'},
-    {'*', '0', '#'}};
 
-byte rowPin[ROWS] = {13, 12, 11, 10};
-byte colPin[COLS] = {9, 8, 7};
 
-// Keypad kpd = Keypad(makeKeymap(keys), rowPin, colPin, ROWS, COLS);
 
 LiquidCrystal_I2C lcd(0x27, 16, 2); // экземпляр жк экрана
 
@@ -91,16 +87,18 @@ void setup()
     lcd.print("www.katalina.ru");
     delay(2000);
 
-    // pinMode(delKeypad2, INPUT_PULLUP);  //кнопка вызова клавиатуры
+  
+    pinMode(EnablePin, OUTPUT); // stop  уладчик
+    digitalWrite(EnablePin, 1); // состояние выключен мотор чтобы не грелся
     pinMode(dereccion, OUTPUT); // направление уладчик
     digitalWrite(dereccion, 0); // состояние
-
-    pinMode(izcuierda, INPUT_PULLUP); // точка лево
-    pinMode(derecha, INPUT_PULLUP);   // точка право
-
     pinMode(stepMotoApilador, OUTPUT); // уладчик
     digitalWrite(stepMotoApilador, 0); // состояние
-
+  
+  
+    pinMode(izcuierda, INPUT_PULLUP); // точка лево
+    pinMode(derecha, INPUT_PULLUP);   // точка право
+  
     pinMode(moto, OUTPUT); // мотор намотки реле
     digitalWrite(moto, 1); // выход надо проверить + или -
 
@@ -139,10 +137,10 @@ void MiEeprom(long a)
     EEPROM.put(0, data); // поместить в EEPROM по адресу 0
 }
 //---------------------------------
-int DetectButtons();
+//int DetectButtons();
 //------------------------
-void Hablo(String a);
-void Hablo_2(String a);
+//void Hablo(String a);
+//void Hablo_2(String a);
 /////////----------------------------------------------
 /////////////-----------------------------------------------
 //-----------------------------------------------//
@@ -164,14 +162,10 @@ void Recalculo()
         // обнуление счетчика
         counter = 0;
         digitalWrite(moto, 0);
-        // !!!!!!11 включился мотор укладчика надо заменить на функцию  Derecha
-        for (int n = 0; n < 10; n++)
-        {
-            digitalWrite(stepMotoApilador, 1); // мотор
-            delay(100);
-            //  digitalWrite(motoApilador, 0);//стоп мотор
-            delay(100);
-        }
+        // !!!!!!11 включился мотор укладчика надо заменить на flag
+      flagTrabajadora = 1;
+      
+        
         lcd.clear();
     }
     if (!btnState && recalculoFlag)
@@ -203,41 +197,18 @@ void buttonTick() // сработка от прерывания
         digitalWrite(testDiod, 0); //  сигнал diod
 
         digitalWrite(moto, 1);         // отключаем реле мотора и останавливае укладчик
-        digitalWrite(stepMotoApilador, 0); // стоп мотор
+        //digitalWrite(stepMotoApilador, 0); // стоп мотор
+      flagTrabajadora = 0;
         digitalWrite(dereccion, 0);    // сбрасываем направление
 
         Serial.println("Fin");
+      
 
         counter = 0;
     }
 }
 //***********
-void btnIsr()
-{
-    counter++; // + нажатие
-    status = 1;
 
-    Serial.println(counter); // выводим
-
-    lcd.clear();
-    lcd.setCursor(3, 0);
-    lcd.print(String("BOBINADORA"));
-    delay(1000);
-    lcd.setCursor(0, 1); // ввод
-    lcd.print("www.katalina.ru");
-    delay(2000);
-}
-//**************
-void Fu()
-{
-    Serial.println("FU"); // выводим
-    Fu2();
-}
-
-void Fu2()
-{
-    Serial.println("FU_2"); // выводим
-}
 //************************************
 //*************************************************************
 void Derecha()
@@ -250,14 +221,11 @@ void Derecha()
         puntoDerechaFlag = true;
         btnTimer = millis();
         Serial.println("press puntoDerechaFlag");
-
-        // включить motoApilador
-        digitalWrite(stepMotoApilador, 0); // мотор              функция степ мотор
-        delay(50);
-
-        // включить направление
-        digitalWrite(dereccion, 1);    // мотор
-        digitalWrite(stepMotoApilador, 1); // мотор функция степ мотор
+      
+        digitalWrite(EnablePin, 1); //  выключаем мотор 
+        delay(50); 
+        digitalWrite(dereccion, 1);    // мотор меняем направление
+        digitalWrite(EnablePin, 0); //  включаем мотор 
     }
     if (!btnState1 && puntoDerechaFlag && millis() - btnTimer > 100)
     {
@@ -274,11 +242,10 @@ void Derecha()
         btnTimer = millis();
         Serial.println("press puntoIzcuierdaFlag");
 
-        digitalWrite(stepMotoApilador, 0); // мотор                          функция степ мотор
-        delay(50);
-        // включить направление
-        digitalWrite(dereccion, 0);    // направление
-        digitalWrite(stepMotoApilador, 1); // мотор /////////////////функция степ мотор
+        digitalWrite(EnablePin, 1); //  выключаем мотор 
+        delay(50); 
+        digitalWrite(dereccion, 0);    // мотор меняем направление
+        digitalWrite(EnablePin, 0); //  включаем мотор 
     }
     if (!btnState2 && puntoIzcuierdaFlag && millis() - btnTimer > 100)
     {
@@ -286,6 +253,33 @@ void Derecha()
         btnTimer = millis();
         // Serial.println("release");
     }
+}
+
+
+ void Trabajadora()
+ {
+   
+   
+   if(flagTrabajadora == 1)
+   for (int n = 0; n < 1000; n++)
+        {
+            digitalWrite(stepMotoApilador, HIGH); // мотор
+             delayMicroseconds(frequency);
+              digitalWrite(stepMotoApilador, LOW);//стоп мотор
+           
+        }
+   else
+   {
+     digitalWrite(stepMotoApilador, LOW);//стоп мотор
+   }
+ }
+
+
+void Disposición()
+{
+
+
+
 }
 //*************************************************************
 void loop()
@@ -301,14 +295,19 @@ void loop()
         lcd.clear();
         lcd.setCursor(3, 0);
         lcd.print(String(counter));
-        delay(100);
+       // delay(100);
+      
     }
+   
     ////--------------------*******
     Derecha();
     Recalculo();
+  Trabajadora();
 }
 ///--------------------------------------//
 //************************************************/
+/*
+
 void Hablo(String a)
 {
     lcd.setCursor(1, 0);
@@ -320,3 +319,4 @@ void Hablo_2(String a)
     lcd.setCursor(2, 1);
     lcd.print(a);
 }
+*/
