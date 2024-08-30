@@ -39,7 +39,7 @@ const int EnablePin= 8; //EnablePin   остановка мотора
 //Логический флаг для рабочего режима
 bool flagTrabajadora = 0;
 
-
+const int disposicion = A1;// конечное положение
 const int izcuierda = A2; // левая точка
 const int derecha = A3;   // правая точка
 
@@ -87,7 +87,7 @@ void setup()
     lcd.print("www.katalina.ru");
     delay(2000);
 
-  
+  pinMode(disposicion, INPUT_PULLUP); // кнопка дома
     pinMode(EnablePin, OUTPUT); // stop  уладчик
     digitalWrite(EnablePin, 1); // состояние выключен мотор чтобы не грелся
     pinMode(dereccion, OUTPUT); // направление уладчик
@@ -275,8 +275,38 @@ void Derecha()
  }
 
 
-void Disposición()
+void Disposicion()
 {
+  bool btnStateDisposicion = !digitalRead(disposicion);
+    if (btnStateDisposicion && digitalRead(izcuierda )&& millis() - btnTimer > 500)
+    {
+      //puntoDerechaFlag = true;
+        btnTimer = millis();
+        Serial.println("press Disposicion");
+      
+        digitalWrite(EnablePin, 1); //  выключаем мотор 
+      //  delay(50); 
+        digitalWrite(dereccion, 1);    // мотор меняем направление
+        digitalWrite(EnablePin, 0); //  включаем мотор 
+      // переделать условия под концевик
+      while (!digitalRead(disposicion)&& digitalRead(izcuierda))
+        {
+            digitalWrite(stepMotoApilador, HIGH); // мотор
+             delayMicroseconds(frequency);
+              digitalWrite(stepMotoApilador, LOW);//стоп мотор
+           
+        }
+      
+      
+    }
+    if (!btnStateDisposicion && puntoIzcuierdaFlag && millis() - btnTimer > 100)
+    {
+        puntoDerechaFlag = false;
+        btnTimer = millis();
+        // Serial.println("release");
+    }
+  
+  
 
 
 
@@ -303,6 +333,7 @@ void loop()
     Derecha();
     Recalculo();
   Trabajadora();
+  Disposicion();
 }
 ///--------------------------------------//
 //************************************************/
