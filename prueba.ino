@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <EEPROM.h>
 int cn = 1;
+volatile uint32_t debounce;
 /*
 RISING (рост) - срабатывает при изменении сигнала с LOW на HIGH
 FALLING (падение) - срабатывает при изменении сигнала с HIGH на LOW
@@ -15,7 +16,7 @@ LOW (низкий) - срабатывает постоянно при сигна
 struct Data {
   int DiametroMini = 2.5;
   int DiametroMaxi = 4.5;
-  int largo = 65;
+  int largo = 15;
   float fvalue = 4.5;
 };
 // глобальный экземпляр для личного использования
@@ -79,7 +80,7 @@ bool puntoIzcuierdaFlag = false;  // флаг левого положения
 bool puntoDerechaFlag = false;    // флаг правого положения
 uint32_t btnTimer = 0;            // таймер кнопок
 //**************///**************///*****************
- int magneto =8;  // колисество сигналов от вала для сдвига
+ int magneto =4;  // колисество сигналов от вала для сдвига
 volatile int counterTick = 0;       // переменная-счётчик
 volatile bool intFlagTick = false;  // флаг!!!!!!!!!!!!!!!!!!!!!
 volatile int counter = 0;       // переменная-счётчик
@@ -145,15 +146,10 @@ pinMode(3, INPUT_PULLUP);
   // FALLING - при нажатии на кнопку будет сигнал 0, его и ловим
   // attachInterrupt(0, btnIsr, FALLING);
   digitalWrite(PinLamp, 1);  //  сигнал 0 на реле
-  /*
-  RISING (рост) - срабатывает при изменении сигнала с LOW на HIGH
-FALLING (падение) - срабатывает при изменении сигнала с HIGH на LOW 
-CHANGE (изменение) - срабатывает при изменении сигнала (с LOW на HIGH и наоборот)
-LOW (низкий) - срабатывает постоянно при сигнале LOW (не поддерживается на ESP8266)*/
   // attachInterrupt(0, buttonTick, RISING); //+
   // attachInterrupt(0, buttonTick, FALLING);//+
   
-  attachInterrupt(1, buttonTick2, CHANGE);  //++   attachInterrupt(1, buttonTick2, CHANGE);  //++
+  attachInterrupt(1, buttonTick2, CHANGE);  //++
                                            // attachInterrupt(0, buttonTick, LOW);
   attachInterrupt(0, buttonTick, CHANGE);  //++
                                            // attachInterrupt(0, buttonTick, LOW);
@@ -202,7 +198,10 @@ void Recalculo() {
 }
 void buttonTick()  // сработка от прерывания
 {
-  intFlag = true;  // подняли флаг прерывания
+  if (millis() - debounce >= 10 && digitalRead(2)) {
+    debounce = millis();
+     // ваш код по прерыванию по высокому сигналу
+     intFlag = true;  // подняли флаг прерывания
 
   if (intFlag && counter < data.largo) {
     intFlag = false;  // сбрасываем
@@ -228,12 +227,20 @@ void buttonTick()  // сработка от прерывания
 
     counter = 0;
   }
+    
+    // ваш код по прерыванию по высокому сигналу
+  }
+  
+ 
 }
 //***********
 void buttonTick2()  // сработка от прерывания
 {
   
-  intFlagTick = true;  // подняли флаг прерывания
+  if (millis() - debounce >= 100 && digitalRead(2)) {
+    debounce = millis();
+    // ваш код по прерыванию по высокому сигналу
+    intFlagTick = true;  // подняли флаг прерывания
 
   if (intFlagTick && counterTick < magneto) {
     intFlagTick = false;  // сбрасываем
@@ -262,6 +269,11 @@ flagProgreso = true;
    // digitalWrite(testDiod, 1);  //  сигнал diod
   }
 
+  
+    
+    // ваш код по прерыванию по высокому сигналу
+  }
+  
   
 }
 //***********
