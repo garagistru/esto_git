@@ -16,7 +16,7 @@ LOW (низкий) - срабатывает постоянно при сигна
 struct Data {
   int DiametroMini = 2.5;
   int DiametroMaxi = 4.5;
-  int largo = 65;
+  int largo = 15;
   float fvalue = 4.5;
 };
 // глобальный экземпляр для личного использования
@@ -72,6 +72,7 @@ const int disposicion = A1;  // конечное положение
 const int izcuierda = A2;    // левая точка
 const int derecha = A3;      // правая точка
 
+
 int testDiod = 4;  //////////////////////подключаем светодиод
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // экземпляр жк экрана
@@ -91,6 +92,8 @@ const int PinLamp = 5;       // заменить на цикл укладчик�
 const int recalculo = A0;    // кнопка пересчета длинны
 bool recalculoFlag = false;  // флаг
 int moto = 6;                // motor rele
+
+
 
 void setup() {
 
@@ -115,6 +118,7 @@ void setup() {
   delay(2000);
 
 
+ 
   pinMode(pinProgreso, INPUT_PULLUP);  // кнопка оборота шпинделя
   pinMode(disposicion, INPUT_PULLUP);  // кнопка дома
   pinMode(EnablePin, OUTPUT);          // stop  уладчик
@@ -198,6 +202,53 @@ void Recalculo() {
 }
 void buttonTick()  // сработка от прерывания
 {
+  bool btnState=!digitalRead(2);
+  if(btnState && !intFlag)
+ { 
+  intFlag=true;
+   counter++;
+   Serial.print("press\t");
+    Serial.println(String(counter));
+  }
+  if(!btnState&&intFlag)
+  {
+    intFlag=false;
+  }
+  
+  //**//***///****////*
+  
+   if (intFlag && counter < data.largo) {
+   // intFlag = false;  // сбрасываем
+    // совершаем какие-то действия
+   // counter++;  // + нажатие
+    //Serial.println(counter);
+    digitalWrite(PinLamp, 0);  //  сигнал 0 на реле
+
+    digitalWrite(testDiod, 1);  //  сигнал diod
+  }
+
+  
+  //**//**
+   else if (counter >= data.largo) {
+    digitalWrite(PinLamp, 1);   //  сигнал 0 на реле
+    digitalWrite(testDiod, 0);  //  сигнал diod
+
+    digitalWrite(moto, 1);  // отключаем реле мотора и останавливае укладчик
+    //digitalWrite(stepMotoApilador, 0); // стоп мотор
+    flagTrabajadora = 0;
+    digitalWrite(dereccion, 0);  // сбрасываем направление
+
+    Serial.println("Fin");
+
+
+    counter = 0;
+  }
+  
+ }
+  ////////////////////////////****--------------------
+  /*
+  
+  
   if (millis() - debounce >= 10 && digitalRead(2)) {
     debounce = millis();
      // ваш код по прерыванию по высокому сигналу
@@ -231,9 +282,12 @@ void buttonTick()  // сработка от прерывания
     // ваш код по прерыванию по высокому сигналу
   }
   
- 
-}
+  */
+  
+   ////////////////////////////****--------------------
+
 //***********
+
 void buttonTick2()  // сработка от прерывания
 {
   
@@ -407,4 +461,8 @@ void loop() {
   Trabajadora();
   Disposicion();
   //Progreso();
+  
+  
 }
+
+S
