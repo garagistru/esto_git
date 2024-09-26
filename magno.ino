@@ -1,3 +1,8 @@
+
+const int magneto = 4;  // колисество сигналов от вала для сдвига
+
+ //testo
+ int giro=12;
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 #include <EEPROM.h>
@@ -29,7 +34,7 @@ long n = 0;             // число на вводе
 long tiempoNumber = 0;  // наборная из клавиатуры
 
 const int pinProgreso = 10;  // пин сдвига
-int progreso = 45;          ///сдвиг на 4,5мм 
+int progreso = 45;           ///сдвиг на 4,5мм
 //Логический флаг для сдвига
 bool flagProgreso = 0;
 
@@ -72,7 +77,6 @@ const int disposicion = A1;  // конечное положение
 const int izcuierda = A2;    // левая точка
 const int derecha = A3;      // правая точка
 
-
 int testDiod = 4;  //////////////////////подключаем светодиод
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);  // экземпляр жк экрана
@@ -81,12 +85,12 @@ bool puntoIzcuierdaFlag = false;  // флаг левого положения
 bool puntoDerechaFlag = false;    // флаг правого положения
 uint32_t btnTimer = 0;            // таймер кнопок
 //**************///**************///*****************
- int magneto =4;  // колисество сигналов от вала для сдвига
+
 volatile int counterTick = 0;       // переменная-счётчик
 volatile bool intFlagTick = false;  // флаг!!!!!!!!!!!!!!!!!!!!!
-volatile int counter = 0;       // переменная-счётчик
-volatile bool intFlag = false;  // флаг!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-int houser = 0;                 // сделать память
+volatile int counter = 0;           // переменная-счётчик
+volatile bool intFlag = false;      // флаг!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+int houser = 0;                     // сделать память
 bool status;
 const int PinLamp = 5;       // заменить на цикл укладчика
 const int recalculo = A0;    // кнопка пересчета длинны
@@ -116,9 +120,8 @@ void setup() {
   lcd.setCursor(0, 1);  // ввод
   lcd.print("www.katalina.ru");
   delay(2000);
+pinMode(giro, INPUT_PULLUP);  // datchick оборота шпинделя
 
-
- 
   pinMode(pinProgreso, INPUT_PULLUP);  // кнопка оборота шпинделя
   pinMode(disposicion, INPUT_PULLUP);  // кнопка дома
   pinMode(EnablePin, OUTPUT);          // stop  уладчик
@@ -142,21 +145,21 @@ void setup() {
   digitalWrite(moto, 1);
   pinMode(testDiod, OUTPUT);  /////////////////////////////
   pinMode(2, INPUT_PULLUP);
-  
-  
-  
-pinMode(3, INPUT_PULLUP);
+
+
+
+  pinMode(3, INPUT_PULLUP);
   //  pinMode(2, INPUT);
   // FALLING - при нажатии на кнопку будет сигнал 0, его и ловим
   // attachInterrupt(0, btnIsr, FALLING);
   digitalWrite(PinLamp, 1);  //  сигнал 0 на реле
   // attachInterrupt(0, buttonTick, RISING); //+
   // attachInterrupt(0, buttonTick, FALLING);//+
-  
-  attachInterrupt(1, buttonTick2, CHANGE);  //++
-                                           // attachInterrupt(0, buttonTick, LOW);
-  attachInterrupt(0, buttonTick, CHANGE);  //++
-                                           // attachInterrupt(0, buttonTick, LOW);
+
+ // attachInterrupt(1, buttonTick2, FALLING);  //++
+                                             // attachInterrupt(0, buttonTick, LOW);
+  attachInterrupt(0, buttonTick, CHANGE);    //++
+                                             // attachInterrupt(0, buttonTick, LOW);
   lcd.clear();
 }
 //*****************************************************************
@@ -187,6 +190,7 @@ void Recalculo() {
     Serial.println(String("Trabajo "));
     // обнуление счетчика
     counter = 0;
+    counterTick =0;
     digitalWrite(moto, 0);
     // !!!!!!11 включился мотор укладчика надо заменить на flag
     flagTrabajadora = 1;
@@ -200,69 +204,32 @@ void Recalculo() {
   // вызываем клавиатуру
   // Serial.println(String("enciende el teclado"));  // выводим
 }
-void buttonTick()  // сработка от прерывания
+void buttonTick()  // сработка от прерывания счетчик
 {
-  bool btnState=!digitalRead(2);
-  if(btnState && !intFlag)
- { 
-  intFlag=true;
-   counter++;
-   Serial.print("press\t");
+  bool btnStateTick = !digitalRead(2);
+  if (btnStateTick && !intFlagTick) {
+    intFlagTick = true;
+    counter++;
+    Serial.print("press\t");
     Serial.println(String(counter));
   }
-  if(!btnState&&intFlag)
-  {
-    intFlag=false;
+  if (!btnStateTick && intFlagTick) {
+    intFlagTick = false;
   }
-  
-  //**//***///****////*
-  
-   if (intFlag && counter < data.largo) {
-   // intFlag = false;  // сбрасываем
+
+
+
+  if (intFlag && counter < data.largo) {
+    // intFlag = false;  // сбрасываем
     // совершаем какие-то действия
-   // counter++;  // + нажатие
+    // counter++;  // + нажатие
     //Serial.println(counter);
     digitalWrite(PinLamp, 0);  //  сигнал 0 на реле
 
     digitalWrite(testDiod, 1);  //  сигнал diod
   }
 
-  
-  //**//**
-   else if (counter >= data.largo) {
-    digitalWrite(PinLamp, 1);   //  сигнал 0 на реле
-    digitalWrite(testDiod, 0);  //  сигнал diod
 
-    digitalWrite(moto, 1);  // отключаем реле мотора и останавливае укладчик
-    //digitalWrite(stepMotoApilador, 0); // стоп мотор
-    flagTrabajadora = 0;
-    digitalWrite(dereccion, 0);  // сбрасываем направление
-
-    Serial.println("Fin");
-
-
-    counter = 0;
-  }
-  
- }
-  ////////////////////////////****--------------------
-  /*
-  
-  
-  if (millis() - debounce >= 10 && digitalRead(2)) {
-    debounce = millis();
-     // ваш код по прерыванию по высокому сигналу
-     intFlag = true;  // подняли флаг прерывания
-
-  if (intFlag && counter < data.largo) {
-    intFlag = false;  // сбрасываем
-    // совершаем какие-то действия
-    counter++;  // + нажатие
-    Serial.println(counter);
-    digitalWrite(PinLamp, 0);  //  сигнал 0 на реле
-
-    digitalWrite(testDiod, 1);  //  сигнал diod
-  }
 
   else if (counter >= data.largo) {
     digitalWrite(PinLamp, 1);   //  сигнал 0 на реле
@@ -278,58 +245,44 @@ void buttonTick()  // сработка от прерывания
 
     counter = 0;
   }
-    
-    // ваш код по прерыванию по высокому сигналу
-  }
-  
-  */
-  
-   ////////////////////////////****--------------------
-
-//***********
-
-void buttonTick2()  // сработка от прерывания
-{
-  
-  if (millis() - debounce >= 100 && digitalRead(2)) {
-    debounce = millis();
-    // ваш код по прерыванию по высокому сигналу
-    intFlagTick = true;  // подняли флаг прерывания
-
-  if (intFlagTick && counterTick < magneto) {
-    intFlagTick = false;  // сбрасываем
-    // совершаем какие-то действия
-    ++counterTick;  // + нажатие
-    Serial.println(counterTick);
-  //  digitalWrite(PinLamp, 0);  //  сигнал 0 на реле
- if (counterTick >= magneto) {
-   // digitalWrite(PinLamp, 1);   //  сигнал 0 на реле
-  //  digitalWrite(testDiod, 0);  //  сигнал diod
-
-  //  digitalWrite(moto, 1);  // отключаем реле мотора и останавливае укладчик
-    //digitalWrite(stepMotoApilador, 0); // стоп мотор
-  //  flagTrabajadora = 0;
-  //  digitalWrite(dereccion, 0);  // сбрасываем направление
-
-    Serial.println("magneto");
-/* действие для сдвига */
-flagProgreso = true;
-
-/* действие для сдвига */
-    counterTick = 0;
-  }
-    
-    
-   // digitalWrite(testDiod, 1);  //  сигнал diod
-  }
-
-  
-    
-    // ваш код по прерыванию по высокому сигналу
-  }
-  
-  
 }
+////////////////////////////****--------------------
+
+void buttonTick2() // сработка от прерывания для сдвига
+{ 
+  
+  bool btnStateTick = !digitalRead(12);
+  if (btnStateTick && !intFlagTick) {
+    intFlagTick = true;
+    counterTick++;
+    Serial.print("moto\t");
+    Serial.println(String(counterTick));
+  }
+  if (!btnStateTick && intFlagTick) {
+    intFlagTick = false;
+  }
+
+
+
+  if (intFlag && counterTick < magneto) {
+    
+  }
+
+
+
+   if (counterTick >= magneto) {
+    
+ 	counterTick = 0;
+        /* действие для сдвига */
+        flagProgreso = true;
+ Serial.println("magneto");
+    
+  }
+ 
+//
+}
+
+
 //***********
 void Derecha() {
 
@@ -345,7 +298,7 @@ void Derecha() {
     digitalWrite(dereccion, 1);  // мотор меняем направление
     digitalWrite(EnablePin, 0);  //  включаем мотор
   }
-  if (!btnState1 && puntoDerechaFlag && millis() - btnTimer > 100) {
+  if (!btnState1 && puntoDerechaFlag) {
     puntoDerechaFlag = false;
     btnTimer = millis();
     // Serial.println("release");
@@ -376,13 +329,16 @@ void Trabajadora() {
 
   if (flagTrabajadora && flagProgreso) {
 
+    digitalWrite(EnablePin, 0);         //  включаем мотор
     for (int n = 0; n < progreso; n++)  ////// ghjmmm
     {
       Serial.println("to es sdvig");
+
       digitalWrite(stepMotoApilador, HIGH);  // мотор
       delayMicroseconds(frequency);
       digitalWrite(stepMotoApilador, LOW);  //стоп мотор
     }
+    digitalWrite(EnablePin, 1);  //  вsключаем мотор
     flagProgreso = false;
     //flagTrabajadora =0;
   } else {
@@ -417,18 +373,17 @@ void Disposicion() {
 }
 
 void Progreso() {
-//пробуем создать счетчик
-  
+  //пробуем создать счетчик
+
   bool btnStateProgreso = !digitalRead(pinProgreso);
   if (btnStateProgreso && !flagProgreso && millis() && flagTrabajadora) {
-   
+
     btnTimer = millis();
     Serial.println(String(cn));
     cn++;
-      Serial.println(String(cn));
-    
+    Serial.println(String(cn));
   }
-/*
+  /*
   bool btnStateProgreso = !digitalRead(pinProgreso);
   if (btnStateProgreso && !flagProgreso && millis() && flagTrabajadora) {
     flagProgreso = true;
@@ -461,8 +416,5 @@ void loop() {
   Trabajadora();
   Disposicion();
   //Progreso();
-  
-  
+  buttonTick2();
 }
-
-S
