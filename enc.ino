@@ -25,15 +25,12 @@ void setup()
 {
   Serial.begin(9600);
   attachInterrupt(1, int0, CHANGE);
-
   pinMode(Ubutton, INPUT_PULLUP);
-
   encCounter = EEPROM.get(address, lento);
 }
 
 void int0()
 {
-
   state0 = digitalRead(TickA);
   if (state0 != lastState)
   {
@@ -70,7 +67,6 @@ void loop()
   if (btnState && flagUbutton && millis() - btnTimer > 500)
   {
     btnTimer = millis();
-
     EEPROM.put(address, encCounter);
     Serial.println("press hold");
   }
